@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EquipHub - 장비 관리 포털</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-base:#07111f;--bg-surface:#0d1e33;--bg-card:#112240;--bg-elevated:#1a3355;
+  --border:rgba(100,160,255,0.12);--border-mid:rgba(100,160,255,0.22);
+  --accent:#4a9eff;--accent-dim:#1e5fa8;--accent-glow:rgba(74,158,255,0.15);
+  --text-primary:#e8f0fe;--text-secondary:#7b9cc4;--text-muted:#456080;
+  --red:#ff5c5c;--red-bg:rgba(255,92,92,0.12);
+  --amber:#ffb340;--amber-bg:rgba(255,179,64,0.12);
+  --green:#4cd97b;--green-bg:rgba(76,217,123,0.12);
+  --blue-soft:rgba(74,158,255,0.12);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,0.12);
+}
+body{font-family:'IBM Plex Sans KR','Noto Sans KR',sans-serif;background:var(--bg-base);color:var(--text-primary)}
+
+/* ===== 로그인 화면 ===== */
+.login-overlay{
+  position:fixed;inset:0;background:var(--bg-base);z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+}
+.login-overlay.hidden{display:none}
+.login-box{
+  background:var(--bg-card);border:1px solid var(--border-mid);border-radius:16px;
+  padding:2.5rem 2rem;width:380px;max-width:90vw;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+.login-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:2rem}
+.login-logo-icon{
+  width:42px;height:42px;background:linear-gradient(135deg,#1e5fa8,#4a9eff);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 16px rgba(74,158,255,0.4);
+}
+.login-logo-icon svg{width:22px;height:22px;fill:none;stroke:white;stroke-width:2}
+.login-title{font-size:20px;font-weight:600;color:var(--text-primary)}
+.login-sub{font-size:11px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase}
+.login-field{
+  display:flex;flex-direction:column;gap:6px;text-align:left;margin-bottom:14px;
+}
+.login-label{font-size:11px;font-weight:500;color:var(--text-secondary);letter-spacing:0.05em;text-transform:uppercase}
+.login-input{
+  padding:10px 14px;border:1px solid var(--border-mid);border-radius:8px;
+  background:var(--bg-surface);color:var(--text-primary);font-family:inherit;font-size:13px;outline:none;
+  transition:border-color 0.15s;
+}
+.login-input:focus{border-color:var(--accent);background:var(--bg-card)}
+.login-btn{
+  width:100%;padding:12px;margin-top:8px;
+  background:linear-gradient(135deg,var(--accent-dim),var(--accent));
+  color:white;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;
+  cursor:pointer;box-shadow:0 4px 16px rgba(74,158,255,0.3);transition:opacity 0.15s;
+}
+.login-btn:hover{opacity:0.88}
+.login-error{color:var(--red);font-size:12px;margin-top:8px;display:none}
+.login-hint{
+  margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--border);
+  font-size:11px;color:var(--text-muted);line-height:1.8;
+}
+.login-hint b{color:var(--text-secondary);font-weight:500}
+
+/* ===== 헤더 ===== */
+.header{
+  background:var(--bg-surface);border-bottom:1px solid var(--border);
+  padding:0 2rem;display:flex;align-items:center;gap:2rem;
+  position:sticky;top:0;z-index:100;backdrop-filter:blur(8px);
+}
+.logo{display:flex;align-items:center;gap:10px;padding:1rem 0}
+.logo-icon{
+  width:34px;height:34px;background:linear-gradient(135deg,#1e5fa8,#4a9eff);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 12px rgba(74,158,255,0.3);
+}
+.logo-icon svg{width:18px;height:18px;fill:none;stroke:white;stroke-width:2}
+.logo-text{font-size:15px;font-weight:500;color:var(--text-primary);letter-spacing:-0.02em}
+.logo-sub{font-size:10px;color:var(--text-muted);letter-spacing:0.1em;text-transform:uppercase}
+
+.nav{display:flex;margin-left:auto}
+.nav-btn{
+  padding:1rem 1.1rem;font-size:13px;background:none;border:none;cursor:pointer;
+  color:var(--text-secondary);border-bottom:2px solid transparent;
+  font-family:inherit;transition:color 0.15s,border-color 0.15s;white-space:nowrap;
+}
+.nav-btn:hover{color:var(--text-primary)}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+
+.user-info{
+  display:flex;align-items:center;gap:8px;padding-left:1rem;
+  border-left:1px solid var(--border);margin-left:0.5rem;
+}
+.user-avatar{
+  width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:white;
+}
+.user-avatar.admin{background:linear-gradient(135deg,#ff5c5c,#ffb340)}
+.user-avatar.user{background:linear-gradient(135deg,#4a9eff,#4cd97b)}
+.user-name{font-size:12px;color:var(--text-primary);font-weight:500}
+.user-role{font-size:10px;padding:1px 6px;border-radius:3px;font-weight:500}
+.user-role.admin{background:var(--red-bg);color:var(--red)}
+.user-role.user{background:var(--green-bg);color:var(--green)}
+.logout-btn{
+  background:none;border:1px solid var(--border-mid);border-radius:6px;
+  padding:4px 10px;font-size:11px;color:var(--text-muted);cursor:pointer;
+  font-family:inherit;transition:all 0.15s;
+}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+.badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:17px;height:17px;border-radius:9px;font-size:10px;font-weight:500;margin-left:5px;
+}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+
+/* ===== 메인 ===== */
+.main{max-width:1200px;margin:0 auto;padding:2rem 1.5rem}
+.section{display:none}.section.active{display:block}
+.page-title{font-size:22px;font-weight:500;margin-bottom:0.3rem;color:var(--text-primary)}
+.page-sub{font-size:13px;color:var(--text-secondary);margin-bottom:1.5rem}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:1.5rem}
+.stat-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:1rem 1.1rem;position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent-dim),var(--accent));opacity:0.6;
+}
+.stat-label{font-size:11px;color:var(--text-muted);margin-bottom:8px;letter-spacing:0.05em;text-transform:uppercase}
+.stat-value{font-size:28px;font-weight:500;line-height:1;color:var(--text-primary)}
+.stat-change{font-size:12px;margin-top:5px}
+.up{color:var(--green)}.neutral{color:var(--text-secondary)}.down{color:var(--red)}
+
+.two-col{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1rem;margin-bottom:1rem}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:1.25rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.card-title{font-size:13px;font-weight:500;color:var(--text-primary);letter-spacing:0.02em}
+
+.voc-item{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.voc-item:last-child{border-bottom:none}
+.status-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.dot-red{background:var(--red);box-shadow:0 0 6px rgba(255,92,92,0.5)}
+.dot-amber{background:var(--amber);box-shadow:0 0 6px rgba(255,179,64,0.5)}
+.dot-green{background:var(--green);box-shadow:0 0 6px rgba(76,217,123,0.4)}
+.dot-blue{background:var(--accent);box-shadow:0 0 6px rgba(74,158,255,0.4)}
+.voc-title{font-size:13px;font-weight:500;margin-bottom:2px;color:var(--text-primary)}
+.voc-meta{font-size:12px;color:var(--text-secondary)}
+
+.voc-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin-left:6px;font-weight:500}
+.tag-urgent{background:var(--red-bg);color:var(--red)}
+.tag-review{background:var(--amber-bg);color:var(--amber)}
+.tag-done{background:var(--green-bg);color:var(--green)}
+.tag-progress{background:var(--blue-soft);color:var(--accent)}
+
+.mini-chart{display:flex;align-items:flex-end;gap:4px;height:64px;margin-top:8px}
+.bar{flex:1;border-radius:2px 2px 0 0;background:rgba(74,158,255,0.2);min-height:4px;transition:background 0.2s;cursor:pointer}
+.bar:hover{background:rgba(74,158,255,0.5)}
+.bar.highlight{background:var(--accent);box-shadow:0 0 8px rgba(74,158,255,0.4)}
+.chart-labels{display:flex;gap:4px;margin-top:4px}
+.chart-label{flex:1;font-size:10px;color:var(--text-muted);text-align:center}
+
+.progress-bar{height:4px;background:var(--bg-elevated);border-radius:2px;overflow:hidden;margin-top:5px}
+.progress-fill{height:100%;border-radius:2px}
+
+.parts-table{width:100%;border-collapse:collapse;font-size:13px}
+.parts-table th{
+  text-align:left;padding:10px 14px;font-size:11px;font-weight:500;color:var(--text-muted);
+  border-bottom:1px solid var(--border);letter-spacing:0.05em;text-transform:uppercase;background:var(--bg-surface);
+}
+.parts-table th:first-child{border-radius:10px 0 0 0}
+.parts-table th:last-child{border-radius:0 10px 0 0}
+.parts-table td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--text-primary)}
+.parts-table tr:last-child td{border-bottom:none}
+.parts-table tbody tr:hover td{background:var(--bg-elevated)}
+
+.part-code{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-secondary)}
+.severity{display:inline-flex;padding:2px 9px;border-radius:4px;font-size:11px;font-weight:500}
+.sev-high{background:var(--red-bg);color:var(--red)}
+.sev-mid{background:var(--amber-bg);color:var(--amber)}
+.sev-low{background:var(--green-bg);color:var(--green)}
+
+.filter-bar{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-chip{
+  padding:5px 14px;border:1px solid var(--border-mid);border-radius:20px;font-size:12px;
+  cursor:pointer;background:transparent;color:var(--text-secondary);font-family:inherit;transition:all 0.15s;
+}
+.filter-chip:hover{border-color:var(--accent);color:var(--accent)}
+.filter-chip.active{background:var(--blue-soft);border-color:var(--accent);color:var(--accent);font-weight:500}
+
+.search-box{
+  display:flex;align-items:center;gap:8px;background:var(--bg-card);
+  border:1px solid var(--border-mid);border-radius:8px;padding:7px 12px;margin-bottom:1rem;
+}
+.search-box:focus-within{border-color:var(--accent)}
+.search-box svg{width:14px;height:14px;color:var(--text-muted);flex-shrink:0;stroke:var(--text-muted)}
+.search-box input{border:none;background:none;font-family:inherit;font-size:13px;color:var(--text-primary);outline:none;flex:1}
+.search-box input::placeholder{color:var(--text-muted)}
+
+.notice-list{display:flex;flex-direction:column;gap:8px}
+.notice-item{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:10px;
+  padding:1rem 1.25rem;cursor:pointer;transition:border-color 0.15s,background 0.15s;
+}
+.notice-item:hover{border-color:var(--border-mid);background:var(--bg-elevated)}
+.notice-item.expanded{border-color:var(--accent);background:var(--bg-elevated)}
+.notice-top{display:flex;align-items:center;gap:10px}
+.notice-category-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.notice-body{
+  font-size:13px;line-height:1.75;color:var(--text-secondary);
+  margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:none;
+}
+.notice-item.expanded .notice-body{display:block}
+.notice-chevron{margin-left:auto;font-size:11px;color:var(--text-muted);transition:transform 0.2s}
+.notice-item.expanded .notice-chevron{transform:rotate(180deg)}
+
+.voc-form{display:flex;flex-direction:column;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;font-weight:500;color:var(--text-secondary);letter-spacing:0.05em;text-transform:uppercase}
+.form-input,.form-select,.form-textarea{
+  padding:9px 12px;border:1px solid var(--border-mid);border-radius:8px;
+  font-family:inherit;font-size:13px;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color 0.15s;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);background:var(--bg-card)}
+.form-select option{background:var(--bg-card)}
+.form-select optgroup{color:var(--text-muted);font-style:normal;font-weight:600}
+.form-textarea{resize:vertical;min-height:90px;line-height:1.6}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-submit{
+  padding:11px 24px;background:linear-gradient(135deg,var(--accent-dim),var(--accent));
+  color:white;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:500;
+  cursor:pointer;box-shadow:0 4px 16px rgba(74,158,255,0.3);transition:opacity 0.15s;align-self:flex-start;
+}
+.btn-submit:hover{opacity:0.88}
+.tag-pill{font-size:11px;padding:2px 9px;border-radius:4px;background:var(--bg-elevated);color:var(--text-secondary);border:1px solid var(--border)}
+
+/* 파일 업로드 */
+.file-upload-area{
+  border:2px dashed var(--border-mid);border-radius:10px;padding:2rem;text-align:center;
+  cursor:pointer;transition:all 0.2s;background:var(--bg-surface);
+}
+.file-upload-area:hover,.file-upload-area.dragover{border-color:var(--accent);background:var(--accent-glow)}
+.file-item{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:8px;margin-top:8px;
+}
+.file-item .file-icon{font-size:20px}
+.file-item .file-info{flex:1}
+.file-item .file-name{font-size:13px;font-weight:500;color:var(--text-primary)}
+.file-item .file-size{font-size:11px;color:var(--text-muted)}
+.file-btn{
+  padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;
+  border:none;cursor:pointer;font-family:inherit;transition:opacity 0.15s;
+}
+.file-btn:hover{opacity:0.8}
+.file-btn-view{background:var(--blue-soft);color:var(--accent)}
+.file-btn-delete{background:var(--red-bg);color:var(--red)}
+
+/* 사진 첨부 */
+.photo-upload-area{
+  border:2px dashed var(--border-mid);border-radius:10px;padding:1.5rem;text-align:center;
+  cursor:pointer;transition:all 0.2s;background:var(--bg-surface);
+}
+.photo-upload-area:hover{border-color:var(--accent);background:var(--accent-glow)}
+.photo-preview-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.photo-thumb{
+  width:80px;height:80px;border-radius:8px;object-fit:cover;
+  border:1px solid var(--border-mid);cursor:pointer;transition:transform 0.15s;
+}
+.photo-thumb:hover{transform:scale(1.05)}
+.photo-thumb-wrap{position:relative;display:inline-block}
+.photo-remove{
+  position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+  background:var(--red);color:white;border:none;cursor:pointer;font-size:12px;
+  display:flex;align-items:center;justify-content:center;line-height:1;
+}
+
+/* 토스트 */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;background:var(--bg-elevated);
+  border:1px solid var(--green);border-radius:10px;padding:14px 20px;
+  display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  z-index:1000;animation:slideUp 0.3s ease;font-size:13px;color:var(--text-primary);
+}
+.toast.error{border-color:var(--red)}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* 관리자 전용 액션 버튼 */
+.admin-action{
+  padding:3px 8px;border-radius:5px;font-size:11px;font-weight:500;
+  border:none;cursor:pointer;font-family:inherit;transition:all 0.15s;margin:0 2px;
+}
+.admin-edit{background:var(--blue-soft);color:var(--accent)}
+.admin-del{background:var(--red-bg);color:var(--red)}
+.admin-action:hover{opacity:0.75}
+
+/* 읽기전용 오버레이 표시 */
+.readonly-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 12px;border-radius:6px;font-size:11px;font-weight:500;
+  background:var(--amber-bg);color:var(--amber);margin-left:10px;
+}
+
+/* 모달 */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;
+  display:none;align-items:center;justify-content:center;
+}
+.modal-overlay.show{display:flex}
+.modal-box{
+  background:var(--bg-card);border:1px solid var(--border-mid);border-radius:14px;
+  padding:2rem;width:500px;max-width:90vw;max-height:85vh;overflow-y:auto;
+  box-shadow:0 16px 48px rgba(0,0,0,0.5);
+}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1rem;color:var(--text-primary)}
+.modal-close{
+  float:right;background:none;border:none;color:var(--text-muted);
+  font-size:18px;cursor:pointer;transition:color 0.15s;
+}
+.modal-close:hover{color:var(--red)}
+
+/* 이미지 라이트박스 */
+.lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:600;
+  display:none;align-items:center;justify-content:center;cursor:pointer;
+}
+.lightbox.show{display:flex}
+.lightbox img{max-width:90vw;max-height:90vh;border-radius:8px}
+
+.saved-voc-banner{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  background:var(--green-bg);border:1px solid rgba(76,217,123,0.3);
+  border-radius:8px;margin-bottom:14px;font-size:12px;color:var(--green);
+}
+
+@media(max-width:700px){
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .two-col{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .nav-btn{padding:1rem 0.65rem;font-size:12px}
+  .logo-sub{display:none}
+  .user-info{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 로그인 화면 ===== -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div>
+        <div class="login-title">EquipHub</div>
+        <div class="login-sub">장비 관리 포털</div>
+      </div>
+    </div>
+    <div class="login-field">
+      <label class="login-label">아이디</label>
+      <input type="text" class="login-input" id="loginId" placeholder="아이디를 입력하세요" autocomplete="off">
+    </div>
+    <div class="login-field">
+      <label class="login-label">비밀번호</label>
+      <input type="password" class="login-input" id="loginPw" placeholder="비밀번호를 입력하세요" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">로그인</button>
+    <div class="login-error" id="loginError">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+    <div class="login-hint">
+      <b>관리자</b> — admin / admin1234<br>
+      <b>일반 사용자</b> — user / user1234
+    </div>
+  </div>
+</div>
+
+<!-- ===== 앱 본체 ===== -->
+<div id="appBody" style="display:none">
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div>
+      <div class="logo-text">EquipHub</div>
+      <div class="logo-sub">장비 관리 포털</div>
+    </div>
+  </div>
+  <nav class="nav" id="mainNav">
+    <button class="nav-btn active" onclick="showSection('dashboard')">대시보드</button>
+    <button class="nav-btn" onclick="showSection('voc')">VOC 관리<span class="badge badge-red" id="vocBadge">3</span></button>
+    <button class="nav-btn" onclick="showSection('parts')">부품 개선</button>
+    <button class="nav-btn" onclick="showSection('notices')">변경 안내</button>
+    <button class="nav-btn" onclick="showSection('submit')">VOC 등록</button>
+  </nav>
+  <div class="user-info">
+    <div class="user-avatar" id="userAvatar">A</div>
+    <div>
+      <div class="user-name" id="userName">관리자</div>
+      <span class="user-role" id="userRole">ADMIN</span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ===== 대시보드 ===== -->
+  <div id="dashboard" class="section active">
+    <div class="page-title">대시보드</div>
+    <div class="page-sub">장비 VOC 및 부품 현황 요약</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">이번 달 VOC</div>
+        <div class="stat-value" id="statTotal">8</div>
+        <div class="stat-change up">▲ 12% 지난달 대비</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">처리 중</div>
+        <div class="stat-value" id="statProcessing" style="color:var(--accent)">2</div>
+        <div class="stat-change neutral">평균 처리 3.2일</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">부품 개선 공지</div>
+        <div class="stat-value" style="color:var(--amber)">5</div>
+        <div class="stat-change" style="color:var(--amber)">2건 긴급</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">완료율</div>
+        <div class="stat-value" id="statComplete" style="color:var(--green)">25%</div>
+        <div class="stat-change up">▲ 4% 개선</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">월별 VOC 접수 현황</div>
+          <span style="font-size:11px;color:var(--text-muted);letter-spacing:0.05em">2024년</span>
+        </div>
+        <div class="mini-chart" id="barChart"></div>
+        <div class="chart-labels" id="chartLabels"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">VOC 유형 분포</div></div>
+        <div id="typeChart"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">최근 VOC 접수</div>
+        <button style="font-size:12px;background:none;border:none;cursor:pointer;color:var(--accent);font-family:inherit" onclick="showSection('voc')">전체보기 →</button>
+      </div>
+      <div id="recentVOC"></div>
+    </div>
+  </div>
+
+  <!-- ===== VOC 관리 ===== -->
+  <div id="voc" class="section">
+    <div style="display:flex;align-items:center">
+      <div class="page-title">VOC 관리</div>
+      <span class="readonly-badge" id="vocReadonly" style="display:none">🔒 읽기전용</span>
+    </div>
+    <div class="page-sub">장비 관련 고객 의견 및 불만 접수 현황</div>
+    <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text-muted);font-weight:500;letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap">상태</span>
+        <div class="filter-bar" id="vocFilters" style="margin-bottom:0">
+          <button class="filter-chip active" onclick="filterVOC('전체',this)">전체</button>
+          <button class="filter-chip" onclick="filterVOC('긴급',this)">긴급</button>
+          <button class="filter-chip" onclick="filterVOC('검토중',this)">검토 중</button>
+          <button class="filter-chip" onclick="filterVOC('처리중',this)">처리 중</button>
+          <button class="filter-chip" onclick="filterVOC('완료',this)">완료</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:11px;color:var(--text-muted);font-weight:500;letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap">접수자</span>
+        <div class="filter-bar" id="vocReceiverFilters" style="margin-bottom:0">
+          <button class="filter-chip active" onclick="filterVOCReceiver('전체',this)">전체</button>
+          <button class="filter-chip" onclick="filterVOCReceiver('영업',this)">영업</button>
+          <button class="filter-chip" onclick="filterVOCReceiver('고객',this)">고객</button>
+          <button class="filter-chip" onclick="filterVOCReceiver('엔지니어',this)">엔지니어</button>
+        </div>
+      </div>
+    </div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="장비명, 번호, 내용, VOC유형으로 검색..." id="vocSearch" oninput="renderVOCList()">
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;overflow-x:auto">
+      <table class="parts-table">
+        <thead><tr>
+          <th>번호</th><th>접수일</th><th>접수자</th><th>구분</th><th>장비명</th><th>VOC유형</th><th>내용</th><th>설치일</th><th>고장일</th><th>접수처</th><th>상태</th><th id="vocActionTh" style="display:none">관리</th>
+        </tr></thead>
+        <tbody id="vocTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== 부품 개선 ===== -->
+  <div id="parts" class="section">
+    <div style="display:flex;align-items:center">
+      <div class="page-title">부품 개선 안내</div>
+      <span class="readonly-badge" id="partsReadonly" style="display:none">🔒 읽기전용</span>
+    </div>
+    <div class="page-sub">부품 개선 및 교체 권장 사항 안내</div>
+    <div class="filter-bar" id="partsFilters">
+      <button class="filter-chip active" onclick="filterParts('전체',this)">전체</button>
+      <button class="filter-chip" onclick="filterParts('긴급',this)">긴급</button>
+      <button class="filter-chip" onclick="filterParts('권장',this)">권장</button>
+      <button class="filter-chip" onclick="filterParts('참고',this)">참고</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="parts-table">
+        <thead><tr>
+          <th>부품번호</th><th>부품명</th><th>적용장비</th><th>개선사유</th><th>중요도</th><th>적용기한</th><th>첨부자료</th><th id="partsActionTh" style="display:none">관리</th>
+        </tr></thead>
+        <tbody id="partsTbody"></tbody>
+      </table>
+    </div>
+    <div class="card" style="margin-top:1rem" id="partsUploadCard">
+      <div class="card-header"><div class="card-title">부품 개선 자료 업로드</div></div>
+      <div class="file-upload-area" id="partsUploadArea" onclick="document.getElementById('partsFileInput').click()">
+        <input type="file" id="partsFileInput" style="display:none" multiple onchange="handlePartsUpload(this.files)">
+        <div style="font-size:28px;margin-bottom:8px">📎</div>
+        <div style="font-size:13px;color:var(--text-secondary)">클릭 또는 드래그하여 업로드</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">PDF, 이미지, 문서 파일 지원</div>
+      </div>
+      <div id="partsFileList"></div>
+    </div>
+  </div>
+
+  <!-- ===== 변경 안내 ===== -->
+  <div id="notices" class="section">
+    <div style="display:flex;align-items:center">
+      <div class="page-title">변경 안내</div>
+      <span class="readonly-badge" id="noticesReadonly" style="display:none">🔒 읽기전용</span>
+    </div>
+    <div class="page-sub">장비 소프트웨어, 사양 및 운영 절차 변경 공지</div>
+    <div class="filter-bar" id="noticesFilters">
+      <button class="filter-chip active" onclick="filterNotices('전체',this)">전체</button>
+      <button class="filter-chip" onclick="filterNotices('소프트웨어',this)">소프트웨어</button>
+      <button class="filter-chip" onclick="filterNotices('사양변경',this)">사양 변경</button>
+      <button class="filter-chip" onclick="filterNotices('안전',this)">안전</button>
+      <button class="filter-chip" onclick="filterNotices('절차',this)">절차</button>
+    </div>
+    <div class="notice-list" id="noticeList"></div>
+    <div class="card" style="margin-top:1rem" id="noticesUploadCard">
+      <div class="card-header"><div class="card-title">변경 안내 자료 업로드</div></div>
+      <div class="file-upload-area" id="noticesUploadArea" onclick="document.getElementById('noticesFileInput').click()">
+        <input type="file" id="noticesFileInput" style="display:none" multiple onchange="handleNoticesUpload(this.files)">
+        <div style="font-size:28px;margin-bottom:8px">📎</div>
+        <div style="font-size:13px;color:var(--text-secondary)">클릭 또는 드래그하여 업로드</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">PDF, 이미지, 문서 파일 지원</div>
+      </div>
+      <div id="noticesFileList"></div>
+    </div>
+  </div>
+
+  <!-- ===== VOC 등록 ===== -->
+  <div id="submit" class="section">
+    <div class="page-title">VOC 등록</div>
+    <div class="page-sub">장비 관련 불편사항이나 개선 의견을 등록해주세요</div>
+    <div style="max-width:640px">
+      <div id="submitSuccess" style="display:none" class="saved-voc-banner">
+        <span style="font-size:16px">✅</span><span id="submitSuccessMsg"></span>
+      </div>
+      <div class="card">
+        <div class="voc-form" id="vocForm">
+          <!-- 접수자 유형 -->
+          <div class="form-group">
+            <label class="form-label">접수자 유형 *</label>
+            <div style="display:flex;gap:8px" id="receiverTypeGroup">
+              <label class="rcv-card" onclick="selectReceiver(this,'영업')" style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border-mid);border-radius:8px;cursor:pointer;background:var(--bg-surface);transition:all 0.15s">
+                <input type="radio" name="receiverType" value="영업" style="display:none">
+                <span style="font-size:18px">💼</span>
+                <div><div style="font-size:13px;font-weight:500;color:var(--text-primary)">영업</div><div style="font-size:11px;color:var(--text-muted)">영업 담당자 접수</div></div>
+              </label>
+              <label class="rcv-card" onclick="selectReceiver(this,'고객')" style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border-mid);border-radius:8px;cursor:pointer;background:var(--bg-surface);transition:all 0.15s">
+                <input type="radio" name="receiverType" value="고객" style="display:none">
+                <span style="font-size:18px">👤</span>
+                <div><div style="font-size:13px;font-weight:500;color:var(--text-primary)">고객</div><div style="font-size:11px;color:var(--text-muted)">고객 직접 접수</div></div>
+              </label>
+              <label class="rcv-card" onclick="selectReceiver(this,'엔지니어')" style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--border-mid);border-radius:8px;cursor:pointer;background:var(--bg-surface);transition:all 0.15s">
+                <input type="radio" name="receiverType" value="엔지니어" style="display:none">
+                <span style="font-size:18px">🔧</span>
+                <div><div style="font-size:13px;font-weight:500;color:var(--text-primary)">엔지니어</div><div style="font-size:11px;color:var(--text-muted)">현장 엔지니어 접수</div></div>
+              </label>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">장비명 *</label>
+              <select class="form-select" id="formEquip">
+                <option value="">선택하세요</option>
+                <optgroup label="H/W"><option value="K3">K3</option><option value="K5">K5</option><option value="T2">T2</option><option value="T2 PLUS">T2 PLUS</option></optgroup>
+                <optgroup label="S/W"><option value="ONE2">ONE2</option><option value="ONE3">ONE3</option><option value="ONESERVER">ONESERVER</option><option value="IFSW">IFSW</option><option value="Xocal">Xocal</option><option value="V-Ceph">V-Ceph</option></optgroup>
+                <optgroup label="기타"><option value="기타">기타</option></optgroup>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">장비 S/N</label>
+              <input type="text" class="form-input" id="formSN" placeholder="예) SN-2024-0012">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">장비 설치날짜</label>
+              <input type="date" class="form-input" id="formInstallDate">
+            </div>
+            <div class="form-group">
+              <label class="form-label">고장날짜</label>
+              <input type="date" class="form-input" id="formFailDate">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">VOC 유형 *</label>
+              <select class="form-select" id="formVocType">
+                <option value="">선택하세요</option>
+                <option>품질이슈</option><option>초도불량</option><option>요청사항</option><option>누락</option><option>파손</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">긴급도</label>
+              <select class="form-select" id="formUrgency">
+                <option>일반</option><option>긴급</option><option>매우 긴급</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">발생 현상 및 상세 내용 *</label>
+            <textarea class="form-textarea" id="formContent" placeholder="발생한 현상, 상황, 빈도 등 상세히 입력해주세요"></textarea>
+          </div>
+
+          <!-- 사진 첨부 -->
+          <div class="form-group">
+            <label class="form-label">사진 첨부</label>
+            <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
+              <input type="file" id="photoInput" style="display:none" multiple accept="image/*" onchange="handlePhotoUpload(this.files)">
+              <div style="font-size:28px;margin-bottom:6px">📷</div>
+              <div style="font-size:13px;color:var(--text-secondary)">클릭하여 사진을 추가하거나 드래그하세요</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">JPG, PNG, GIF 등 이미지 파일</div>
+            </div>
+            <div class="photo-preview-grid" id="photoPreviewGrid"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">접수자 성명</label>
+              <input type="text" class="form-input" id="formName" placeholder="홍길동">
+            </div>
+            <div class="form-group">
+              <label class="form-label">연락처</label>
+              <input type="text" class="form-input" id="formPhone" placeholder="010-0000-0000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">소속/현장명</label>
+            <input type="text" class="form-input" id="formOrg" placeholder="예) 부산센터">
+          </div>
+          <button class="btn-submit" onclick="submitVOC()">VOC 등록하기</button>
+        </div>
+      </div>
+      <div style="margin-top:1.5rem">
+        <div class="card-header"><div class="card-title" style="font-size:14px">최근 등록된 VOC (<span id="savedCount">0</span>건)</div></div>
+        <div id="savedVOCList" style="font-size:13px;color:var(--text-muted);padding:0.5rem 0">등록된 VOC가 없습니다.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /appBody -->
+
+<!-- 수정 모달 -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeEditModal()">&times;</button>
+    <div class="modal-title">VOC 수정</div>
+    <div class="voc-form" id="editForm"></div>
+  </div>
+</div>
+
+<!-- 이미지 라이트박스 -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('show')">
+  <img id="lightboxImg" src="">
+</div>
+
+<script>
+// ==================== 계정 시스템 ====================
+const ACCOUNTS = {
+  admin: {pw:'admin1234', name:'관리자', role:'admin'},
+  user:  {pw:'user1234',  name:'사용자', role:'user'},
+};
+let currentUser = null; // {id, name, role}
+
+function doLogin(){
+  const id = document.getElementById('loginId').value.trim();
+  const pw = document.getElementById('loginPw').value;
+  const acc = ACCOUNTS[id];
+  if(!acc || acc.pw!==pw){
+    document.getElementById('loginError').style.display='block';
+    return;
+  }
+  document.getElementById('loginError').style.display='none';
+  currentUser = {id, name:acc.name, role:acc.role};
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('appBody').style.display='block';
+  applyPermissions();
+  initApp();
+}
+
+function doLogout(){
+  currentUser = null;
+  document.getElementById('appBody').style.display='none';
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.getElementById('loginId').value='';
+  document.getElementById('loginPw').value='';
+  showSection('dashboard');
+}
+
+function isAdmin(){ return currentUser && currentUser.role==='admin'; }
+
+function applyPermissions(){
+  const av = document.getElementById('userAvatar');
+  const un = document.getElementById('userName');
+  const ur = document.getElementById('userRole');
+  av.textContent = currentUser.name[0];
+  av.className = 'user-avatar ' + currentUser.role;
+  un.textContent = currentUser.name;
+  ur.textContent = isAdmin()?'ADMIN':'USER';
+  ur.className = 'user-role ' + currentUser.role;
+
+  // 관리자: 모든 기능 노출
+  // 일반: 업로드 카드 숨기기, 관리 컬럼 숨기기, 읽기전용 배지 표시
+  const hide = !isAdmin();
+  document.getElementById('partsUploadCard').style.display = hide?'none':'block';
+  document.getElementById('noticesUploadCard').style.display = hide?'none':'block';
+  document.getElementById('vocActionTh').style.display = hide?'none':'';
+  document.getElementById('partsActionTh').style.display = hide?'none':'';
+  document.getElementById('vocReadonly').style.display = hide?'inline-flex':'none';
+  document.getElementById('partsReadonly').style.display = hide?'inline-flex':'none';
+  document.getElementById('noticesReadonly').style.display = hide?'inline-flex':'none';
+}
+
+// ==================== 데이터 ====================
+const equipCatMap = {'K3':'H/W','K5':'H/W','T2':'H/W','T2 PLUS':'H/W','ONE2':'S/W','ONE3':'S/W','ONESERVER':'S/W','IFSW':'S/W','Xocal':'S/W','V-Ceph':'S/W','기타':'기타'};
+const catStyle = {'H/W':{bg:'rgba(74,158,255,0.12)',c:'#4a9eff'},'S/W':{bg:'rgba(167,139,250,0.12)',c:'#a78bfa'},'기타':{bg:'var(--bg-elevated)',c:'var(--text-secondary)'}};
+const rcvStyle = {영업:{bg:'rgba(74,158,255,0.12)',c:'#4a9eff',i:'💼'},고객:{bg:'rgba(76,217,123,0.12)',c:'#4cd97b',i:'👤'},엔지니어:{bg:'rgba(255,179,64,0.12)',c:'#ffb340',i:'🔧'}};
+const tagMap = {긴급:'tag-urgent',검토중:'tag-review',처리중:'tag-progress',완료:'tag-done'};
+const dotMap = {긴급:'dot-red',검토중:'dot-amber',처리중:'dot-blue',완료:'dot-green'};
+
+const vocData = [
+  {id:'VOC-2024-0047',date:'2024.12.15',equip:'K5',vocType:'품질이슈',content:'스캐닝 정밀도 저하 현상',from:'서울본원',status:'긴급',receiver:'엔지니어',installDate:'2023.06.10',failDate:'2024.12.14',photos:[]},
+  {id:'VOC-2024-0046',date:'2024.12.14',equip:'ONE3',vocType:'초도불량',content:'초기 설치 후 프로그램 실행 오류',from:'부산센터',status:'검토중',receiver:'고객',installDate:'2024.12.13',failDate:'2024.12.13',photos:[]},
+  {id:'VOC-2024-0045',date:'2024.12.13',equip:'T2',vocType:'파손',content:'핸드피스 커넥터 파손',from:'대구센터',status:'처리중',receiver:'영업',installDate:'2022.03.20',failDate:'2024.12.12',photos:[]},
+  {id:'VOC-2024-0044',date:'2024.12.12',equip:'IFSW',vocType:'요청사항',content:'환자 데이터 내보내기 기능 요청',from:'수원센터',status:'완료',receiver:'고객',installDate:'2023.09.01',failDate:'',photos:[]},
+  {id:'VOC-2024-0043',date:'2024.12.11',equip:'K3',vocType:'품질이슈',content:'밀링 블록 장착 불량',from:'인천센터',status:'완료',receiver:'엔지니어',installDate:'2021.11.15',failDate:'2024.12.10',photos:[]},
+  {id:'VOC-2024-0042',date:'2024.12.10',equip:'V-Ceph',vocType:'누락',content:'분석 모듈 누락으로 세팔로 측정 불가',from:'광주센터',status:'긴급',receiver:'영업',installDate:'2024.01.05',failDate:'2024.12.09',photos:[]},
+  {id:'VOC-2024-0041',date:'2024.12.09',equip:'T2 PLUS',vocType:'초도불량',content:'초도 설치 시 축 보정값 오차',from:'대전센터',status:'처리중',receiver:'고객',installDate:'2024.12.08',failDate:'2024.12.08',photos:[]},
+  {id:'VOC-2024-0040',date:'2024.12.08',equip:'Xocal',vocType:'파손',content:'센서 케이블 단선',from:'울산센터',status:'검토중',receiver:'엔지니어',installDate:'2023.04.22',failDate:'2024.12.07',photos:[]},
+];
+
+const partsData = [
+  {code:'PT-2024-001',name:'스캐너 베어링',equip:'K5',reason:'스캐닝 정밀도 개선 (기존 대비 30% 향상)',level:'긴급',deadline:'2025.01.31',files:[]},
+  {code:'PT-2024-002',name:'밀링 스핀들',equip:'K3',reason:'내구성 강화 소재로 변경',level:'긴급',deadline:'2025.01.15',files:[]},
+  {code:'PT-2024-003',name:'핸드피스 커넥터',equip:'T2',reason:'파손 방지 강화 설계 적용',level:'권장',deadline:'2025.02.28',files:[]},
+  {code:'PT-2024-004',name:'축 보정 모듈',equip:'T2 PLUS',reason:'초도 보정 정밀도 개선',level:'권장',deadline:'2025.03.31',files:[]},
+  {code:'PT-2024-005',name:'센서 케이블',equip:'Xocal',reason:'내구성 강화 및 단선 방지 설계',level:'참고',deadline:'2025.06.30',files:[]},
+  {code:'PT-2024-006',name:'GPU 드라이버 호환',equip:'V-Ceph',reason:'최신 분석 모듈 호환성 확보',level:'권장',deadline:'2025.02.15',files:[]},
+];
+
+const noticesData = [
+  {color:'#4a9eff',title:'[긴급] K5 펌웨어 v3.2.1 업데이트 안내',date:'2024.12.10',tag:'소프트웨어',body:'스캐닝 과부하 감지 알고리즘 개선 및 보안 취약점 패치가 포함된 펌웨어 업데이트입니다.',files:[]},
+  {color:'#ffb340',title:'T2 PLUS 축 보정 사양 변경 안내',date:'2024.12.05',tag:'사양변경',body:'정밀도 기준 강화에 따라 축 보정값 허용 오차가 ±0.05mm에서 ±0.03mm으로 조정됩니다.',files:[]},
+  {color:'#ff5c5c',title:'[안전 공지] K3 밀링 작업 시 보호구 착용 기준 강화',date:'2024.11.28',tag:'안전',body:'산업안전보건법 개정에 따라 밀링 작업 시 보안경 착용이 의무화됩니다.',files:[]},
+  {color:'#4cd97b',title:'ONE3 일상점검 체크리스트 개정 안내 (v2.3)',date:'2024.11.20',tag:'절차',body:'소프트웨어 업데이트 점검 항목 추가, 데이터 백업 점검 주기가 매일로 변경됩니다.',files:[]},
+  {color:'#4a9eff',title:'V-Ceph 분석 소프트웨어 v5.0 기능 업데이트',date:'2024.11.15',tag:'소프트웨어',body:'AI 기반 세팔로 분석 기능 추가, 분석 정확도 15% 향상.',files:[]},
+];
+
+let vocFilter='전체', vocReceiverFilter='전체', partsFilter='전체', noticesFilter='전체';
+let vocCounter=48;
+let vocPhotos=[]; // 현재 등록 중인 사진
+let partsFiles=[], noticesFiles=[];
+
+// ==================== 렌더링 ====================
+const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const barData=[28,35,22,41,38,45,33,29,47,52,40,47];
+
+function renderBarChart(){
+  const mx=Math.max(...barData);
+  document.getElementById('barChart').innerHTML=barData.map((v,i)=>`<div class="bar${i===11?' highlight':''}" style="height:${Math.round((v/mx)*100)}%" title="${months[i]}: ${v}건"></div>`).join('');
+  document.getElementById('chartLabels').innerHTML=months.map(m=>`<div class="chart-label">${m.replace('월','')}</div>`).join('');
+}
+
+function renderTypeChart(){
+  const tc={};vocData.forEach(v=>{tc[v.vocType]=(tc[v.vocType]||0)+1});
+  const total=vocData.length;
+  const colors={'품질이슈':'#4a9eff','초도불량':'#ff5c5c','요청사항':'#ffb340','누락':'#a78bfa','파손':'#4cd97b'};
+  const types=Object.keys(tc).map(l=>({l,n:tc[l],c:colors[l]||'#456080',p:Math.round((tc[l]/total)*100)})).sort((a,b)=>b.n-a.n);
+  document.getElementById('typeChart').innerHTML=types.map(t=>`
+    <div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+      <span style="color:var(--text-secondary)">${t.l}</span>
+      <span style="font-weight:500;color:var(--text-primary)">${t.n}건 <span style="color:var(--text-muted);font-weight:400">(${t.p}%)</span></span>
+    </div><div class="progress-bar"><div class="progress-fill" style="width:${t.p}%;background:${t.c};opacity:0.85"></div></div></div>
+  `).join('');
+}
+
+function renderRecentVOC(){
+  document.getElementById('recentVOC').innerHTML=vocData.slice(0,5).map(v=>{
+    const rc=rcvStyle[v.receiver]||{};const cat=equipCatMap[v.equip]||'기타';const cs=catStyle[cat]||{};
+    return `<div class="voc-item"><div class="status-dot ${dotMap[v.status]}"></div><div style="flex:1">
+      <div class="voc-title"><span style="padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500;background:${cs.bg};color:${cs.c};margin-right:4px">${cat}</span>${v.equip}
+      <span class="voc-tag ${tagMap[v.status]}" style="margin-left:8px">${v.status}</span>
+      <span style="display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:4px;font-size:10px;font-weight:500;background:${rc.bg};color:${rc.c};margin-left:6px">${rc.i} ${v.receiver}</span>
+      <span style="padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500;background:var(--purple-bg);color:var(--purple);margin-left:4px">${v.vocType}</span>
+      ${v.photos&&v.photos.length?`<span style="font-size:10px;color:var(--text-muted);margin-left:4px">📷${v.photos.length}</span>`:''}</div>
+      <div class="voc-meta">${v.content} · ${v.from} · ${v.date}</div></div>
+      <span class="part-code" style="font-size:11px;align-self:center">${v.id}</span></div>`;
+  }).join('');
+}
+
+function filterVOC(f,el){vocFilter=f;document.querySelectorAll('#vocFilters .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderVOCList()}
+function filterVOCReceiver(f,el){vocReceiverFilter=f;document.querySelectorAll('#vocReceiverFilters .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderVOCList()}
+
+function renderVOCList(){
+  const s=(document.getElementById('vocSearch')?.value||'').toLowerCase();
+  const filtered=vocData.filter(v=>{
+    const mf=vocFilter==='전체'||v.status===vocFilter;
+    const mr=vocReceiverFilter==='전체'||v.receiver===vocReceiverFilter;
+    const ms=!s||[v.equip,v.content,v.id,v.receiver,v.vocType,v.from].some(x=>x.toLowerCase().includes(s));
+    return mf&&mr&&ms;
+  });
+  const admin=isAdmin();
+  document.getElementById('vocTbody').innerHTML=filtered.map((v,idx)=>{
+    const rc=rcvStyle[v.receiver]||{bg:'',c:'',i:''};const cat=equipCatMap[v.equip]||'기타';const cs=catStyle[cat]||{bg:'',c:''};
+    const photoIcon=v.photos&&v.photos.length?` <span style="cursor:pointer;font-size:12px" title="사진 ${v.photos.length}장" onclick="showVocPhotos(${vocData.indexOf(v)})">📷${v.photos.length}</span>`:'';
+    return `<tr>
+      <td><span class="part-code">${v.id}</span></td>
+      <td style="font-size:12px;color:var(--text-muted);white-space:nowrap">${v.date}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:4px;font-size:11px;font-weight:500;background:${rc.bg};color:${rc.c}">${rc.i} ${v.receiver}</span></td>
+      <td><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:${cs.bg};color:${cs.c}">${cat}</span></td>
+      <td style="font-size:13px;font-weight:500;white-space:nowrap">${v.equip}</td>
+      <td><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;background:var(--purple-bg);color:var(--purple)">${v.vocType}</span></td>
+      <td style="font-size:13px">${v.content}${photoIcon}</td>
+      <td style="font-size:11px;color:var(--text-muted);white-space:nowrap">${v.installDate||'-'}</td>
+      <td style="font-size:11px;color:var(--text-muted);white-space:nowrap">${v.failDate||'-'}</td>
+      <td style="font-size:12px;color:var(--text-secondary);white-space:nowrap">${v.from}</td>
+      <td><span class="voc-tag ${tagMap[v.status]}">${v.status}</span></td>
+      ${admin?`<td style="white-space:nowrap"><button class="admin-action admin-edit" onclick="openEditModal(${vocData.indexOf(v)})">수정</button><button class="admin-action admin-del" onclick="deleteVOC(${vocData.indexOf(v)})">삭제</button></td>`:''}
+    </tr>`;
+  }).join('');
+}
+
+function filterParts(f,el){partsFilter=f;document.querySelectorAll('#partsFilters .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderParts()}
+function renderParts(){
+  const sevMap={긴급:'sev-high',권장:'sev-mid',참고:'sev-low'};const admin=isAdmin();
+  const filtered=partsData.filter(p=>partsFilter==='전체'||p.level===partsFilter);
+  document.getElementById('partsTbody').innerHTML=filtered.map((p,i)=>`<tr>
+    <td><span class="part-code">${p.code}</span></td>
+    <td style="font-size:13px;font-weight:500">${p.name}</td>
+    <td style="font-size:12px;color:var(--text-secondary)">${p.equip}</td>
+    <td style="font-size:13px">${p.reason}</td>
+    <td><span class="severity ${sevMap[p.level]}">${p.level}</span></td>
+    <td style="font-size:12px;color:var(--text-muted)">${p.deadline}</td>
+    <td>${p.files.length?p.files.map(f=>`<button class="file-btn file-btn-view" onclick="viewFile('${f.url}')" style="margin:2px">${f.name}</button>`).join(''):'<span style="font-size:11px;color:var(--text-muted)">-</span>'}</td>
+    ${admin?`<td><button class="admin-action admin-del" onclick="deletePart(${partsData.indexOf(p)})">삭제</button></td>`:''}
+  </tr>`).join('');
+}
+
+function filterNotices(f,el){noticesFilter=f;document.querySelectorAll('#noticesFilters .filter-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderNotices()}
+function renderNotices(){
+  const admin=isAdmin();
+  const filtered=noticesData.filter(n=>noticesFilter==='전체'||n.tag===noticesFilter);
+  document.getElementById('noticeList').innerHTML=filtered.map((n,idx)=>`
+    <div class="notice-item" onclick="toggleNotice(this)">
+      <div class="notice-top">
+        <div class="notice-category-dot" style="background:${n.color};box-shadow:0 0 6px ${n.color}88"></div>
+        <span class="tag-pill">${n.tag}</span>
+        <span style="font-size:13px;font-weight:500;flex:1;color:var(--text-primary)">${n.title}</span>
+        ${n.files.length?`<span style="font-size:11px;color:var(--accent);margin-right:4px">📎${n.files.length}</span>`:''}
+        <span style="font-size:11px;color:var(--text-muted);margin-right:8px">${n.date}</span>
+        ${admin?`<button class="admin-action admin-del" onclick="event.stopPropagation();deleteNotice(${noticesData.indexOf(n)})" style="margin-right:6px">삭제</button>`:''}
+        <span class="notice-chevron">▾</span>
+      </div>
+      <div class="notice-body">${n.body}
+        ${n.files.length?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:500">첨부 자료</div>${n.files.map(f=>`<div class="file-item" style="margin-top:4px"><span class="file-icon">${getFileIcon(f.name)}</span><div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${f.size}</div></div><div class="file-actions"><button class="file-btn file-btn-view" onclick="event.stopPropagation();viewFile('${f.url}')">보기</button></div></div>`).join('')}</div>`:''}
+      </div>
+    </div>
+  `).join('');
+}
+function toggleNotice(el){el.classList.toggle('expanded')}
+
+// ==================== 관리자: 삭제/수정 ====================
+function deleteVOC(idx){
+  if(!confirm(`${vocData[idx].id}를 삭제하시겠습니까?`))return;
+  vocData.splice(idx,1);refreshAll();showToast('VOC가 삭제되었습니다.');
+}
+function deletePart(idx){
+  if(!confirm(`${partsData[idx].code}를 삭제하시겠습니까?`))return;
+  partsData.splice(idx,1);renderParts();showToast('부품 개선 항목이 삭제되었습니다.');
+}
+function deleteNotice(idx){
+  if(!confirm('이 변경 안내를 삭제하시겠습니까?'))return;
+  noticesData.splice(idx,1);renderNotices();showToast('변경 안내가 삭제되었습니다.');
+}
+
+let editIdx=-1;
+function openEditModal(idx){
+  editIdx=idx;const v=vocData[idx];
+  document.getElementById('editForm').innerHTML=`
+    <div class="form-row"><div class="form-group"><label class="form-label">장비명</label>
+      <select class="form-select" id="editEquip"><optgroup label="H/W"><option>K3</option><option>K5</option><option>T2</option><option>T2 PLUS</option></optgroup><optgroup label="S/W"><option>ONE2</option><option>ONE3</option><option>ONESERVER</option><option>IFSW</option><option>Xocal</option><option>V-Ceph</option></optgroup><optgroup label="기타"><option>기타</option></optgroup></select>
+    </div><div class="form-group"><label class="form-label">VOC 유형</label>
+      <select class="form-select" id="editVocType"><option>품질이슈</option><option>초도불량</option><option>요청사항</option><option>누락</option><option>파손</option></select>
+    </div></div>
+    <div class="form-group"><label class="form-label">내용</label><textarea class="form-textarea" id="editContent">${v.content}</textarea></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">상태</label>
+      <select class="form-select" id="editStatus"><option>긴급</option><option>검토중</option><option>처리중</option><option>완료</option></select>
+    </div><div class="form-group"><label class="form-label">접수처</label><input type="text" class="form-input" id="editFrom" value="${v.from}"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">설치일</label><input type="date" class="form-input" id="editInstall" value="${(v.installDate||'').replace(/\./g,'-')}"></div>
+    <div class="form-group"><label class="form-label">고장일</label><input type="date" class="form-input" id="editFail" value="${(v.failDate||'').replace(/\./g,'-')}"></div></div>
+    <button class="btn-submit" onclick="saveEdit()">저장</button>`;
+  document.getElementById('editEquip').value=v.equip;
+  document.getElementById('editVocType').value=v.vocType;
+  document.getElementById('editStatus').value=v.status;
+  document.getElementById('editModal').classList.add('show');
+}
+function closeEditModal(){document.getElementById('editModal').classList.remove('show')}
+function saveEdit(){
+  const v=vocData[editIdx];
+  v.equip=document.getElementById('editEquip').value;
+  v.vocType=document.getElementById('editVocType').value;
+  v.content=document.getElementById('editContent').value;
+  v.status=document.getElementById('editStatus').value;
+  v.from=document.getElementById('editFrom').value;
+  const inst=document.getElementById('editInstall').value;
+  const fail=document.getElementById('editFail').value;
+  v.installDate=inst?inst.replace(/-/g,'.'):'';
+  v.failDate=fail?fail.replace(/-/g,'.'):'';
+  closeEditModal();refreshAll();showToast('VOC가 수정되었습니다.');
+}
+
+// ==================== 사진 첨부 ====================
+function handlePhotoUpload(files){
+  Array.from(files).forEach(f=>{
+    if(!f.type.startsWith('image/'))return;
+    const url=URL.createObjectURL(f);
+    vocPhotos.push({name:f.name,url,raw:f});
+  });
+  renderPhotoPreview();
+}
+function renderPhotoPreview(){
+  document.getElementById('photoPreviewGrid').innerHTML=vocPhotos.map((p,i)=>`
+    <div class="photo-thumb-wrap">
+      <img class="photo-thumb" src="${p.url}" onclick="openLightbox('${p.url}')" title="${p.name}">
+      <button class="photo-remove" onclick="removePhoto(${i})">&times;</button>
+    </div>
+  `).join('');
+}
+function removePhoto(i){vocPhotos.splice(i,1);renderPhotoPreview()}
+function openLightbox(url){document.getElementById('lightboxImg').src=url;document.getElementById('lightbox').classList.add('show')}
+function showVocPhotos(idx){
+  const v=vocData[idx];if(!v.photos||!v.photos.length)return;
+  openLightbox(v.photos[0].url);
+}
+
+// 사진 영역 드래그앤드롭
+document.addEventListener('DOMContentLoaded',()=>{
+  const pa=document.querySelector('.photo-upload-area');
+  if(pa){
+    pa.addEventListener('dragover',e=>{e.preventDefault();pa.style.borderColor='var(--accent)';pa.style.background='var(--accent-glow)'});
+    pa.addEventListener('dragleave',()=>{pa.style.borderColor='';pa.style.background=''});
+    pa.addEventListener('drop',e=>{e.preventDefault();pa.style.borderColor='';pa.style.background='';handlePhotoUpload(e.dataTransfer.files)});
+  }
+});
+
+// ==================== 파일 업로드 ====================
+function getFileIcon(n){const e=n.split('.').pop().toLowerCase();if(e==='pdf')return'📄';if(['jpg','jpeg','png','gif','webp'].includes(e))return'🖼️';if(['doc','docx'].includes(e))return'📝';if(['xls','xlsx'].includes(e))return'📊';return'📎'}
+function fmtSize(b){if(b<1024)return b+'B';if(b<1048576)return(b/1024).toFixed(1)+'KB';return(b/1048576).toFixed(1)+'MB'}
+
+function handlePartsUpload(files){
+  Array.from(files).forEach(f=>{partsFiles.push({name:f.name,size:fmtSize(f.size),url:URL.createObjectURL(f)})});
+  renderPartsFiles();showToast(`${files.length}개 파일 업로드 완료`);
+}
+function handleNoticesUpload(files){
+  Array.from(files).forEach(f=>{noticesFiles.push({name:f.name,size:fmtSize(f.size),url:URL.createObjectURL(f)})});
+  renderNoticesFiles();showToast(`${files.length}개 파일 업로드 완료`);
+}
+function renderPartsFiles(){
+  document.getElementById('partsFileList').innerHTML=partsFiles.map((f,i)=>`<div class="file-item"><span class="file-icon">${getFileIcon(f.name)}</span><div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${f.size}</div></div><div class="file-actions"><button class="file-btn file-btn-view" onclick="viewFile('${f.url}')">보기</button><button class="file-btn file-btn-delete" onclick="removePartsFile(${i})">삭제</button></div></div>`).join('');
+}
+function renderNoticesFiles(){
+  document.getElementById('noticesFileList').innerHTML=noticesFiles.map((f,i)=>`<div class="file-item"><span class="file-icon">${getFileIcon(f.name)}</span><div class="file-info"><div class="file-name">${f.name}</div><div class="file-size">${f.size}</div></div><div class="file-actions"><button class="file-btn file-btn-view" onclick="viewFile('${f.url}')">보기</button><button class="file-btn file-btn-delete" onclick="removeNoticesFile(${i})">삭제</button></div></div>`).join('');
+}
+function removePartsFile(i){partsFiles.splice(i,1);renderPartsFiles()}
+function removeNoticesFile(i){noticesFiles.splice(i,1);renderNoticesFiles()}
+function viewFile(url){window.open(url,'_blank')}
+
+// 드래그앤드롭
+['partsUploadArea','noticesUploadArea'].forEach(id=>{
+  const el=document.getElementById(id);if(!el)return;
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('dragover')});
+  el.addEventListener('dragleave',()=>el.classList.remove('dragover'));
+  el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('dragover');
+    if(id==='partsUploadArea')handlePartsUpload(e.dataTransfer.files);
+    else handleNoticesUpload(e.dataTransfer.files);
+  });
+});
+
+// ==================== VOC 등록 ====================
+function selectReceiver(el,type){
+  document.querySelectorAll('#receiverTypeGroup label').forEach(l=>{l.style.borderColor='var(--border-mid)';l.style.background='var(--bg-surface)'});
+  el.style.borderColor='var(--accent)';el.style.background='var(--accent-glow)';
+  el.querySelector('input').checked=true;
+}
+
+function submitVOC(){
+  const rcv=document.querySelector('input[name="receiverType"]:checked');
+  const equip=document.getElementById('formEquip').value;
+  const vocType=document.getElementById('formVocType').value;
+  const content=document.getElementById('formContent').value.trim();
+  if(!rcv){showToast('접수자 유형을 선택해주세요.',true);return}
+  if(!equip){showToast('장비명을 선택해주세요.',true);return}
+  if(!vocType){showToast('VOC 유형을 선택해주세요.',true);return}
+  if(!content){showToast('상세 내용을 입력해주세요.',true);return}
+
+  const now=new Date();const ds=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  const fd=v=>v?v.replace(/-/g,'.'):'';
+  const urgency=document.getElementById('formUrgency').value;
+
+  const nv={
+    id:`VOC-2024-${String(vocCounter).padStart(4,'0')}`,date:ds,equip,vocType,content,
+    from:document.getElementById('formOrg').value||'미입력',
+    status:urgency==='긴급'||urgency==='매우 긴급'?'긴급':'검토중',
+    receiver:rcv.value,
+    installDate:fd(document.getElementById('formInstallDate').value),
+    failDate:fd(document.getElementById('formFailDate').value),
+    photos:[...vocPhotos],
+  };
+  vocData.unshift(nv);vocCounter++;
+
+  showToast(`${nv.id} 등록 완료!`);
+  document.getElementById('submitSuccess').style.display='flex';
+  document.getElementById('submitSuccessMsg').textContent=`${nv.id} — ${equip} (${vocType}) 등록 완료. ${vocPhotos.length?'사진 '+vocPhotos.length+'장 첨부.':''}`;
+
+  // 폼 리셋
+  ['formEquip','formSN','formVocType','formContent','formName','formPhone','formOrg','formInstallDate','formFailDate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('formUrgency').value='일반';
+  document.querySelectorAll('#receiverTypeGroup label').forEach(l=>{l.style.borderColor='var(--border-mid)';l.style.background='var(--bg-surface)'});
+  document.querySelectorAll('input[name="receiverType"]').forEach(r=>r.checked=false);
+  vocPhotos=[];renderPhotoPreview();
+
+  refreshAll();
+  setTimeout(()=>{document.getElementById('submitSuccess').style.display='none'},5000);
+}
+
+// ==================== 유틸 ====================
+function showToast(msg,err){
+  const old=document.querySelector('.toast');if(old)old.remove();
+  const t=document.createElement('div');t.className='toast'+(err?' error':'');
+  t.innerHTML=`<span style="font-size:16px">${err?'❌':'✅'}</span>${msg}`;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+}
+
+function updateDashStats(){
+  document.getElementById('statTotal').textContent=vocData.length;
+  document.getElementById('statProcessing').textContent=vocData.filter(v=>v.status==='처리중').length;
+  const done=vocData.filter(v=>v.status==='완료').length;
+  document.getElementById('statComplete').textContent=Math.round((done/vocData.length)*100)+'%';
+  document.getElementById('vocBadge').textContent=vocData.filter(v=>v.status==='긴급').length;
+}
+
+function renderSavedList(){
+  document.getElementById('savedCount').textContent=vocData.length;
+  document.getElementById('savedVOCList').innerHTML=vocData.slice(0,5).map(v=>{
+    const cat=equipCatMap[v.equip]||'기타';const cs=catStyle[cat]||{};
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span class="part-code">${v.id}</span>
+      <span style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;background:${cs.bg};color:${cs.c}">${cat}</span>
+      <span style="font-size:13px;font-weight:500;color:var(--text-primary)">${v.equip}</span>
+      <span style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500;background:var(--purple-bg);color:var(--purple)">${v.vocType}</span>
+      <span style="flex:1;font-size:12px;color:var(--text-secondary)">${v.content}</span>
+      ${v.photos&&v.photos.length?`<span style="font-size:11px;color:var(--text-muted)">📷${v.photos.length}</span>`:''}
+      <span style="font-size:11px;color:var(--text-muted)">${v.date}</span></div>`;
+  }).join('');
+}
+
+function refreshAll(){updateDashStats();renderVOCList();renderRecentVOC();renderTypeChart();renderSavedList()}
+
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  ['dashboard','voc','parts','notices','submit'].forEach((s,i)=>{if(s===id)document.querySelectorAll('.nav-btn')[i].classList.add('active')});
+}
+
+function initApp(){
+  renderBarChart();renderTypeChart();renderRecentVOC();renderVOCList();renderParts();renderNotices();updateDashStats();renderSavedList();
+}
+</script>
+</body>
+</html>
