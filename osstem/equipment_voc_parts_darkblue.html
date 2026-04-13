@@ -1,0 +1,633 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-base: #07111f;
+    --bg-surface: #0d1e33;
+    --bg-card: #112240;
+    --bg-elevated: #1a3355;
+    --border: rgba(100,160,255,0.12);
+    --border-mid: rgba(100,160,255,0.22);
+    --accent: #4a9eff;
+    --accent-dim: #1e5fa8;
+    --accent-glow: rgba(74,158,255,0.15);
+    --text-primary: #e8f0fe;
+    --text-secondary: #7b9cc4;
+    --text-muted: #456080;
+    --red: #ff5c5c;
+    --red-bg: rgba(255,92,92,0.12);
+    --amber: #ffb340;
+    --amber-bg: rgba(255,179,64,0.12);
+    --green: #4cd97b;
+    --green-bg: rgba(76,217,123,0.12);
+    --blue-soft: rgba(74,158,255,0.12);
+  }
+
+  body { font-family: 'IBM Plex Sans KR', 'Noto Sans KR', sans-serif; background: var(--bg-base); color: var(--text-primary); }
+
+  .header {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; padding: 1rem 0; }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, #1e5fa8, #4a9eff);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 12px rgba(74,158,255,0.3);
+  }
+  .logo-icon svg { width: 18px; height: 18px; fill: none; stroke: white; stroke-width: 2; }
+  .logo-text { font-size: 15px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.02em; }
+  .logo-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .nav { display: flex; margin-left: auto; }
+  .nav-btn {
+    padding: 1rem 1.1rem;
+    font-size: 13px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    font-family: inherit;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { color: var(--text-primary); }
+  .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
+
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 17px; height: 17px; border-radius: 9px;
+    font-size: 10px; font-weight: 500; margin-left: 5px;
+  }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+
+  .main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .page-title { font-size: 22px; font-weight: 500; margin-bottom: 0.3rem; color: var(--text-primary); }
+  .page-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.5rem; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+    opacity: 0.6;
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .stat-value { font-size: 28px; font-weight: 500; line-height: 1; color: var(--text-primary); }
+  .stat-change { font-size: 12px; margin-top: 5px; }
+  .up { color: var(--green); } .neutral { color: var(--text-secondary); } .down { color: var(--red); }
+
+  .two-col { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(0,1fr); gap: 1rem; margin-bottom: 1rem; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+  }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--text-primary); letter-spacing: 0.02em; }
+
+  .voc-item { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+  .voc-item:last-child { border-bottom: none; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .dot-red { background: var(--red); box-shadow: 0 0 6px rgba(255,92,92,0.5); }
+  .dot-amber { background: var(--amber); box-shadow: 0 0 6px rgba(255,179,64,0.5); }
+  .dot-green { background: var(--green); box-shadow: 0 0 6px rgba(76,217,123,0.4); }
+  .dot-blue { background: var(--accent); box-shadow: 0 0 6px rgba(74,158,255,0.4); }
+  .voc-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; color: var(--text-primary); }
+  .voc-meta { font-size: 12px; color: var(--text-secondary); }
+
+  .voc-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 6px; font-weight: 500; }
+  .tag-urgent { background: var(--red-bg); color: var(--red); }
+  .tag-review { background: var(--amber-bg); color: var(--amber); }
+  .tag-done { background: var(--green-bg); color: var(--green); }
+  .tag-progress { background: var(--blue-soft); color: var(--accent); }
+
+  .mini-chart { display: flex; align-items: flex-end; gap: 4px; height: 64px; margin-top: 8px; }
+  .bar { flex: 1; border-radius: 2px 2px 0 0; background: rgba(74,158,255,0.2); min-height: 4px; transition: background 0.2s; cursor: pointer; }
+  .bar:hover { background: rgba(74,158,255,0.5); }
+  .bar.highlight { background: var(--accent); box-shadow: 0 0 8px rgba(74,158,255,0.4); }
+  .chart-labels { display: flex; gap: 4px; margin-top: 4px; }
+  .chart-label { flex: 1; font-size: 10px; color: var(--text-muted); text-align: center; }
+
+  .progress-bar { height: 4px; background: var(--bg-elevated); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+  .progress-fill { height: 100%; border-radius: 2px; }
+
+  .parts-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .parts-table th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 500; color: var(--text-muted); border-bottom: 1px solid var(--border); letter-spacing: 0.05em; text-transform: uppercase; background: var(--bg-surface); }
+  .parts-table th:first-child { border-radius: 10px 0 0 0; }
+  .parts-table th:last-child { border-radius: 0 10px 0 0; }
+  .parts-table td { padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text-primary); }
+  .parts-table tr:last-child td { border-bottom: none; }
+  .parts-table tbody tr:hover td { background: var(--bg-elevated); }
+
+  .part-code { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-secondary); }
+  .severity { display: inline-flex; padding: 2px 9px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .sev-high { background: var(--red-bg); color: var(--red); }
+  .sev-mid { background: var(--amber-bg); color: var(--amber); }
+  .sev-low { background: var(--green-bg); color: var(--green); }
+
+  .filter-bar { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .filter-chip {
+    padding: 5px 14px;
+    border: 1px solid var(--border-mid);
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-chip.active { background: var(--blue-soft); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+  .search-box {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-mid);
+    border-radius: 8px;
+    padding: 7px 12px;
+    margin-bottom: 1rem;
+  }
+  .search-box:focus-within { border-color: var(--accent); }
+  .search-box svg { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0; stroke: var(--text-muted); }
+  .search-box input { border: none; background: none; font-family: inherit; font-size: 13px; color: var(--text-primary); outline: none; flex: 1; }
+  .search-box input::placeholder { color: var(--text-muted); }
+
+  .notice-list { display: flex; flex-direction: column; gap: 8px; }
+  .notice-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .notice-item:hover { border-color: var(--border-mid); background: var(--bg-elevated); }
+  .notice-item.expanded { border-color: var(--accent); background: var(--bg-elevated); }
+  .notice-top { display: flex; align-items: center; gap: 10px; }
+  .notice-category-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .notice-body {
+    font-size: 13px; line-height: 1.75; color: var(--text-secondary);
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .notice-item.expanded .notice-body { display: block; }
+  .notice-chevron { margin-left: auto; font-size: 11px; color: var(--text-muted); transition: transform 0.2s; }
+  .notice-item.expanded .notice-chevron { transform: rotate(180deg); }
+
+  .voc-form { display: flex; flex-direction: column; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 11px; font-weight: 500; color: var(--text-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
+  .form-input, .form-select, .form-textarea {
+    padding: 9px 12px;
+    border: 1px solid var(--border-mid);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); background: var(--bg-card); }
+  .form-select option { background: var(--bg-card); }
+  .form-textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .btn-submit {
+    padding: 11px 24px;
+    background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(74,158,255,0.3);
+    transition: opacity 0.15s;
+    align-self: flex-start;
+  }
+  .btn-submit:hover { opacity: 0.88; }
+
+  .tag-pill {
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 4px;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+
+  @media (max-width: 700px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .nav-btn { padding: 1rem 0.65rem; font-size: 12px; }
+    .logo-sub { display: none; }
+  }
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div>
+      <div class="logo-text">EquipHub</div>
+      <div class="logo-sub">장비 관리 포털</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showSection('dashboard')">대시보드</button>
+    <button class="nav-btn" onclick="showSection('voc')">VOC 관리<span class="badge badge-red">3</span></button>
+    <button class="nav-btn" onclick="showSection('parts')">부품 개선<span class="badge badge-amber">5</span></button>
+    <button class="nav-btn" onclick="showSection('notices')">변경 안내</button>
+    <button class="nav-btn" onclick="showSection('submit')">VOC 등록</button>
+  </nav>
+</div>
+
+<div class="main">
+
+  <!-- 대시보드 -->
+  <div id="dashboard" class="section active">
+    <div class="page-title">대시보드</div>
+    <div class="page-sub">장비 VOC 및 부품 현황 요약</div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">이번 달 VOC</div>
+        <div class="stat-value">47</div>
+        <div class="stat-change up">▲ 12% 지난달 대비</div>
+      </div>
+      <div class="stat-card" style="--accent:#4a9eff">
+        <div class="stat-label">처리 중</div>
+        <div class="stat-value" style="color:var(--accent)">18</div>
+        <div class="stat-change neutral">평균 처리 3.2일</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">부품 개선 공지</div>
+        <div class="stat-value" style="color:var(--amber)">5</div>
+        <div class="stat-change" style="color:var(--amber)">2건 긴급</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">완료율</div>
+        <div class="stat-value" style="color:var(--green)">83%</div>
+        <div class="stat-change up">▲ 4% 개선</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">월별 VOC 접수 현황</div>
+          <span style="font-size:11px;color:var(--text-muted);letter-spacing:0.05em">2024년</span>
+        </div>
+        <div class="mini-chart" id="barChart"></div>
+        <div class="chart-labels" id="chartLabels"></div>
+        <div style="display:flex;gap:16px;margin-top:10px;">
+          <div style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:5px">
+            <span style="display:inline-block;width:10px;height:10px;background:rgba(74,158,255,0.2);border-radius:2px"></span>일반
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:5px">
+            <span style="display:inline-block;width:10px;height:10px;background:var(--accent);border-radius:2px"></span>최근
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">VOC 유형 분포</div></div>
+        <div id="typeChart"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">최근 VOC 접수</div>
+        <button style="font-size:12px;background:none;border:none;cursor:pointer;color:var(--accent);font-family:inherit;" onclick="showSection('voc')">전체보기 →</button>
+      </div>
+      <div id="recentVOC"></div>
+    </div>
+  </div>
+
+  <!-- VOC 관리 -->
+  <div id="voc" class="section">
+    <div class="page-title">VOC 관리</div>
+    <div class="page-sub">장비 관련 고객 의견 및 불만 접수 현황</div>
+    <div class="filter-bar" id="vocFilters">
+      <button class="filter-chip active" onclick="filterVOC('전체',this)">전체</button>
+      <button class="filter-chip" onclick="filterVOC('긴급',this)">긴급</button>
+      <button class="filter-chip" onclick="filterVOC('검토중',this)">검토 중</button>
+      <button class="filter-chip" onclick="filterVOC('처리중',this)">처리 중</button>
+      <button class="filter-chip" onclick="filterVOC('완료',this)">완료</button>
+    </div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="장비명, 번호, 내용으로 검색..." id="vocSearch" oninput="renderVOCList()">
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="parts-table">
+        <thead><tr>
+          <th>번호</th><th>접수일</th><th>장비명</th><th>VOC 내용</th><th>접수처</th><th>상태</th>
+        </tr></thead>
+        <tbody id="vocTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 부품 개선 -->
+  <div id="parts" class="section">
+    <div class="page-title">부품 개선 안내</div>
+    <div class="page-sub">부품 개선 및 교체 권장 사항 안내</div>
+    <div class="filter-bar" id="partsFilters">
+      <button class="filter-chip active" onclick="filterParts('전체',this)">전체</button>
+      <button class="filter-chip" onclick="filterParts('긴급',this)">긴급</button>
+      <button class="filter-chip" onclick="filterParts('권장',this)">권장</button>
+      <button class="filter-chip" onclick="filterParts('참고',this)">참고</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="parts-table">
+        <thead><tr>
+          <th>부품번호</th><th>부품명</th><th>적용 장비</th><th>개선 사유</th><th>중요도</th><th>적용 기한</th>
+        </tr></thead>
+        <tbody id="partsTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 변경 안내 -->
+  <div id="notices" class="section">
+    <div class="page-title">변경 안내</div>
+    <div class="page-sub">장비 소프트웨어, 사양 및 운영 절차 변경 공지</div>
+    <div class="filter-bar" id="noticesFilters">
+      <button class="filter-chip active" onclick="filterNotices('전체',this)">전체</button>
+      <button class="filter-chip" onclick="filterNotices('소프트웨어',this)">소프트웨어</button>
+      <button class="filter-chip" onclick="filterNotices('사양변경',this)">사양 변경</button>
+      <button class="filter-chip" onclick="filterNotices('안전',this)">안전</button>
+      <button class="filter-chip" onclick="filterNotices('절차',this)">절차</button>
+    </div>
+    <div class="notice-list" id="noticeList"></div>
+  </div>
+
+  <!-- VOC 등록 -->
+  <div id="submit" class="section">
+    <div class="page-title">VOC 등록</div>
+    <div class="page-sub">장비 관련 불편사항이나 개선 의견을 등록해주세요</div>
+    <div style="max-width:600px;">
+      <div class="card">
+        <div class="voc-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">장비명 *</label>
+              <select class="form-select">
+                <option value="">선택하세요</option>
+                <option>CNC 밀링머신 A-200</option>
+                <option>레이저 커팅기 LC-500</option>
+                <option>자동 용접기 AW-300</option>
+                <option>압출기 EX-100</option>
+                <option>검사장비 QC-700</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">장비 S/N</label>
+              <input type="text" class="form-input" placeholder="예) SN-2024-0012">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">VOC 유형 *</label>
+              <select class="form-select">
+                <option value="">선택하세요</option>
+                <option>작동 불량</option><option>소음/진동</option>
+                <option>부품 파손</option><option>소프트웨어 오류</option>
+                <option>성능 저하</option><option>기타</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">긴급도</label>
+              <select class="form-select">
+                <option>일반</option><option>긴급</option><option>매우 긴급</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">발생 현상 및 상세 내용 *</label>
+            <textarea class="form-textarea" placeholder="발생한 현상, 상황, 빈도 등 상세히 입력해주세요"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">접수자 성명</label>
+              <input type="text" class="form-input" placeholder="홍길동">
+            </div>
+            <div class="form-group">
+              <label class="form-label">연락처</label>
+              <input type="text" class="form-input" placeholder="010-0000-0000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">소속/현장명</label>
+            <input type="text" class="form-input" placeholder="예) 부산공장 제조1팀">
+          </div>
+          <button class="btn-submit" onclick="submitVOC()">VOC 등록하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const barData = [28,35,22,41,38,45,33,29,47,52,40,47];
+
+function renderBarChart() {
+  const max = Math.max(...barData);
+  document.getElementById('barChart').innerHTML = barData.map((v,i) =>
+    `<div class="bar${i===11?' highlight':''}" style="height:${Math.round((v/max)*100)}%" title="${months[i]}: ${v}건"></div>`
+  ).join('');
+  document.getElementById('chartLabels').innerHTML = months.map(m =>
+    `<div class="chart-label">${m.replace('월','')}</div>`
+  ).join('');
+}
+
+function renderTypeChart() {
+  const types = [
+    {label:'작동 불량', count:18, color:'#4a9eff', pct:38},
+    {label:'소음/진동', count:11, color:'#ffb340', pct:23},
+    {label:'부품 파손', count:8, color:'#ff5c5c', pct:17},
+    {label:'소프트웨어', count:6, color:'#4cd97b', pct:13},
+    {label:'기타', count:4, color:'#456080', pct:9},
+  ];
+  document.getElementById('typeChart').innerHTML = types.map(t => `
+    <div style="margin-bottom:11px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+        <span style="color:var(--text-secondary)">${t.label}</span>
+        <span style="font-weight:500;color:var(--text-primary)">${t.count}건 <span style="color:var(--text-muted);font-weight:400">(${t.pct}%)</span></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${t.pct}%;background:${t.color};opacity:0.85"></div></div>
+    </div>
+  `).join('');
+}
+
+const vocData = [
+  {id:'VOC-2024-0047',date:'2024.12.15',equip:'CNC 밀링머신 A-200',content:'주축 베어링 이상 진동 발생',from:'부산공장',status:'긴급'},
+  {id:'VOC-2024-0046',date:'2024.12.14',equip:'레이저 커팅기 LC-500',content:'절단 정밀도 편차 발생 (±0.3mm 초과)',from:'수원공장',status:'검토중'},
+  {id:'VOC-2024-0045',date:'2024.12.13',equip:'자동 용접기 AW-300',content:'용접 불량률 증가 (기존 0.5% → 2.1%)',from:'인천공장',status:'처리중'},
+  {id:'VOC-2024-0044',date:'2024.12.12',equip:'압출기 EX-100',content:'스크류 마모로 인한 압출량 감소',from:'울산공장',status:'완료'},
+  {id:'VOC-2024-0043',date:'2024.12.11',equip:'검사장비 QC-700',content:'카메라 렌즈 오염으로 검사 오류',from:'창원공장',status:'완료'},
+  {id:'VOC-2024-0042',date:'2024.12.10',equip:'CNC 밀링머신 A-200',content:'냉각수 누수로 인한 장비 정지',from:'대전공장',status:'긴급'},
+  {id:'VOC-2024-0041',date:'2024.12.09',equip:'레이저 커팅기 LC-500',content:'레이저 출력 불안정 (±15% 변동)',from:'광주공장',status:'처리중'},
+  {id:'VOC-2024-0040',date:'2024.12.08',equip:'자동 용접기 AW-300',content:'와이어 공급 불량 발생',from:'대구공장',status:'검토중'},
+];
+
+let vocFilter = '전체';
+function filterVOC(f, el) {
+  vocFilter = f;
+  document.querySelectorAll('#vocFilters .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderVOCList();
+}
+
+function renderVOCList() {
+  const search = (document.getElementById('vocSearch')?.value || '').toLowerCase();
+  const tagMap = {긴급:'tag-urgent',검토중:'tag-review',처리중:'tag-progress',완료:'tag-done'};
+  const filtered = vocData.filter(v => {
+    const mf = vocFilter === '전체' || v.status === vocFilter;
+    const ms = !search || [v.equip,v.content,v.id].some(s=>s.toLowerCase().includes(search));
+    return mf && ms;
+  });
+  document.getElementById('vocTbody').innerHTML = filtered.map(v => `
+    <tr>
+      <td><span class="part-code">${v.id}</span></td>
+      <td style="font-size:12px;color:var(--text-muted)">${v.date}</td>
+      <td style="font-size:13px;font-weight:500">${v.equip}</td>
+      <td style="font-size:13px">${v.content}</td>
+      <td style="font-size:12px;color:var(--text-secondary)">${v.from}</td>
+      <td><span class="voc-tag ${tagMap[v.status]}">${v.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderRecentVOC() {
+  const dotMap = {긴급:'dot-red',검토중:'dot-amber',처리중:'dot-blue',완료:'dot-green'};
+  const tagMap = {긴급:'tag-urgent',검토중:'tag-review',처리중:'tag-progress',완료:'tag-done'};
+  document.getElementById('recentVOC').innerHTML = vocData.slice(0,5).map(v => `
+    <div class="voc-item">
+      <div class="status-dot ${dotMap[v.status]}"></div>
+      <div style="flex:1">
+        <div class="voc-title">${v.equip}<span class="voc-tag ${tagMap[v.status]}" style="margin-left:8px">${v.status}</span></div>
+        <div class="voc-meta">${v.content} · ${v.from} · ${v.date}</div>
+      </div>
+      <span class="part-code" style="font-size:11px;align-self:center">${v.id}</span>
+    </div>
+  `).join('');
+}
+
+const partsData = [
+  {code:'PT-2024-001',name:'주축 베어링 (6204-2RS)',equip:'CNC 밀링머신 A-200',reason:'내구성 개선 및 수명 연장 (기존 대비 30% 향상)',level:'긴급',deadline:'2025.01.31'},
+  {code:'PT-2024-002',name:'레이저 포커스 렌즈',equip:'레이저 커팅기 LC-500',reason:'열화 방지 코팅 적용 신규 규격으로 변경',level:'긴급',deadline:'2025.01.15'},
+  {code:'PT-2024-003',name:'용접 와이어 가이드',equip:'자동 용접기 AW-300',reason:'마모 저항성 강화된 세라믹 소재로 교체',level:'권장',deadline:'2025.02.28'},
+  {code:'PT-2024-004',name:'압출 스크류 (L형)',equip:'압출기 EX-100',reason:'질화 처리로 내마모성 40% 개선된 신형',level:'권장',deadline:'2025.03.31'},
+  {code:'PT-2024-005',name:'비전 카메라 필터',equip:'검사장비 QC-700',reason:'방진 성능 강화 및 화질 개선 (4K → 8K)',level:'참고',deadline:'2025.06.30'},
+  {code:'PT-2024-006',name:'냉각수 펌프 씰',equip:'CNC 밀링머신 A-200',reason:'누수 방지 소재 변경 (NBR → EPDM)',level:'권장',deadline:'2025.02.15'},
+];
+
+let partsFilter = '전체';
+function filterParts(f, el) {
+  partsFilter = f;
+  document.querySelectorAll('#partsFilters .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderParts();
+}
+function renderParts() {
+  const sevMap = {긴급:'sev-high',권장:'sev-mid',참고:'sev-low'};
+  const filtered = partsData.filter(p => partsFilter === '전체' || p.level === partsFilter);
+  document.getElementById('partsTbody').innerHTML = filtered.map(p => `
+    <tr>
+      <td><span class="part-code">${p.code}</span></td>
+      <td style="font-size:13px;font-weight:500">${p.name}</td>
+      <td style="font-size:12px;color:var(--text-secondary)">${p.equip}</td>
+      <td style="font-size:13px">${p.reason}</td>
+      <td><span class="severity ${sevMap[p.level]}">${p.level}</span></td>
+      <td style="font-size:12px;color:var(--text-muted)">${p.deadline}</td>
+    </tr>
+  `).join('');
+}
+
+const noticesData = [
+  {color:'#4a9eff',title:'[긴급] CNC 밀링머신 A-200 펌웨어 v3.2.1 업데이트 안내',date:'2024.12.10',tag:'소프트웨어',body:'주축 과부하 감지 알고리즘 개선 및 보안 취약점 패치가 포함된 펌웨어 업데이트입니다. 2025년 1월 15일까지 전 장비 업데이트를 완료해야 합니다. 업데이트 중 장비 운전을 중지하고, 전원이 안정적으로 공급되는 상태에서 진행하십시오. 업데이트 파일은 고객지원 포털에서 다운로드 가능합니다.'},
+  {color:'#ffb340',title:'레이저 커팅기 LC-500 최대 출력 사양 변경 안내',date:'2024.12.05',tag:'사양변경',body:'안전 기준 강화에 따라 LC-500 시리즈의 최대 레이저 출력이 기존 500W에서 480W로 조정됩니다. 기존 커팅 프로그램의 출력 파라미터 검토가 필요하며, 필요시 이송 속도를 4% 감소하여 동일한 품질을 유지할 수 있습니다.'},
+  {color:'#ff5c5c',title:'[안전 공지] 자동 용접기 AW-300 보호구 착용 기준 강화',date:'2024.11.28',tag:'안전',body:'산업안전보건법 개정에 따라 AW-300 운전 시 방진 마스크 등급이 기존 1급에서 특급으로 상향됩니다. 2025년 1월 1일부터 시행되며, 이를 위반할 경우 관련 법령에 따른 행정처분이 부과될 수 있습니다.'},
+  {color:'#4cd97b',title:'압출기 EX-100 일상점검 체크리스트 개정 안내 (v2.3)',date:'2024.11.20',tag:'절차',body:'압출 스크류 마모 점검 항목이 추가되고, 기존 헤드 압력 점검 주기가 주 1회에서 매일로 변경됩니다. 개정된 체크리스트는 현장에 배포 중이며, 기존 양식 사용을 즉시 중단해주세요.'},
+  {color:'#4a9eff',title:'검사장비 QC-700 비전 소프트웨어 v5.0 주요 기능 업데이트',date:'2024.11.15',tag:'소프트웨어',body:'AI 기반 결함 검출 기능이 추가되어 기존 대비 검출율 15% 향상되었습니다. 신규 기능 사용을 위해 GPU 드라이버(ver. 535 이상) 업데이트가 필요합니다. 교육 일정은 별도 안내 예정입니다.'},
+];
+
+let noticesFilter = '전체';
+function filterNotices(f, el) {
+  noticesFilter = f;
+  document.querySelectorAll('#noticesFilters .filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderNotices();
+}
+function renderNotices() {
+  const filtered = noticesData.filter(n => noticesFilter === '전체' || n.tag === noticesFilter);
+  document.getElementById('noticeList').innerHTML = filtered.map(n => `
+    <div class="notice-item" onclick="toggleNotice(this)">
+      <div class="notice-top">
+        <div class="notice-category-dot" style="background:${n.color};box-shadow:0 0 6px ${n.color}88"></div>
+        <span class="tag-pill">${n.tag}</span>
+        <span style="font-size:13px;font-weight:500;flex:1;color:var(--text-primary)">${n.title}</span>
+        <span style="font-size:11px;color:var(--text-muted);margin-right:8px">${n.date}</span>
+        <span class="notice-chevron">▾</span>
+      </div>
+      <div class="notice-body">${n.body}</div>
+    </div>
+  `).join('');
+}
+function toggleNotice(el) { el.classList.toggle('expanded'); }
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  ['dashboard','voc','parts','notices','submit'].forEach((s,i) => {
+    if(s===id) document.querySelectorAll('.nav-btn')[i].classList.add('active');
+  });
+}
+
+function submitVOC() {
+  alert('VOC가 성공적으로 등록되었습니다.\n담당자가 확인 후 연락드리겠습니다.');
+}
+
+renderBarChart(); renderTypeChart(); renderRecentVOC(); renderVOCList(); renderParts(); renderNotices();
+</script>
